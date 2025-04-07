@@ -71,4 +71,14 @@ mod tests {
     let answer = modular!(x / y, 7, i32);
     assert_eq!(answer, 4);
   }
+
+  #[test]
+  fn test_div_many() {
+    for x in (-10i32..=10).filter(|&x| x != 0) {
+      for y in (-10i32..=10).filter(|&y| y != 0) {
+        let answer = modular!(x / y, 11, i32);
+        assert_eq!((y * answer).rem_euclid(11), x.rem_euclid(11));
+      }
+    }
+  }
 }
