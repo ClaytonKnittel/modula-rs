@@ -1,3 +1,4 @@
+use num_prime::nt_funcs::is_prime64;
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{BinOp, Expr, ExprBinary, ExprLit, Lit, Type, spanned::Spanned};
@@ -66,6 +67,19 @@ fn binary(
 }
 
 pub fn modulafy(expr: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
+  if let Expr::Lit(ExprLit { lit: Lit::Int(lit), .. }) = modulus {
+    let m: u64 = lit.base10_parse().unwrap();
+    if !is_prime64(m) {
+      return syn::Error::new(
+        modulus.span(),
+        format!("Modulus is not prime \"{}\"", quote! { #modulus }),
+      )
+      .to_compile_error();
+    }
+  } else {
+    // TODO: check that the modulus is prime at runtime.
+  }
+
   match expr {
     Expr::Lit(expr) => lit(expr, inttype),
     Expr::Path(_) => path(expr, modulus, inttype),
