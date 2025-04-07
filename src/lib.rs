@@ -1,5 +1,3 @@
-extern crate proc_macro;
-
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{
@@ -58,6 +56,10 @@ fn modulafy(expr: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
       }
     }
     Expr::Lit(_) => expr.to_token_stream(),
+    Expr::Paren(paren) => {
+      let expr = modulafy(&paren.expr, modulus, inttype);
+      quote! { (#expr) }
+    }
     _ => syn::Error::new(
       expr.span(),
       format!("Unexpected expr \"{}\"", quote! { #expr }),

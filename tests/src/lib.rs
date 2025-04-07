@@ -37,4 +37,12 @@ mod tests {
       }
     }
   }
+
+  #[test]
+  fn test_add_recursive() {
+    let x = 10;
+    let y = 20;
+    let answer = modular!(x + (x + y), 7, i32);
+    assert_eq!(answer, 5);
+  }
 }
