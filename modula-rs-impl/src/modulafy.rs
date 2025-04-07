@@ -1,9 +1,11 @@
 use num_prime::nt_funcs::is_prime64;
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
-use syn::{BinOp, Expr, ExprBinary, ExprLit, Lit, Type, spanned::Spanned};
+use syn::{Expr, ExprLit, Lit, Type, spanned::Spanned};
 
-fn modulo(expr: TokenStream, modulus: &Expr) -> TokenStream {
+use crate::{binary::binary, unary::unary};
+
+pub fn modulo(expr: TokenStream, modulus: &Expr) -> TokenStream {
   quote! { #expr.rem_euclid(#modulus) }
 }
 
@@ -27,45 +29,6 @@ fn path(expr: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   modulo(expr.to_token_stream(), modulus)
 }
 
-fn add_op(left: &Expr, op: &BinOp, right: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
-  let left = modulafy(left, modulus, inttype);
-  let right = modulafy(right, modulus, inttype);
-  modulo(quote! { (#left #op #right) }, modulus)
-}
-
-fn mul_op(left: &Expr, right: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
-  let left = modulafy(left, modulus, inttype);
-  let right = modulafy(right, modulus, inttype);
-  modulo(quote! { (#left * #right) }, modulus)
-}
-
-fn div_op(left: &Expr, right: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
-  let left = modulafy(left, modulus, inttype);
-  let right = modulafy(right, modulus, inttype);
-  let rinv = modulo(
-    quote! { ::modula_rs::num_integer::Integer::extended_gcd(&#right, &#modulus).x },
-    modulus,
-  );
-  modulo(quote! { (#left * #rinv) }, modulus)
-}
-
-fn binary(
-  ExprBinary { left, op, right, .. }: &ExprBinary,
-  modulus: &Expr,
-  inttype: &Type,
-) -> TokenStream {
-  match op {
-    op @ BinOp::Add(_) | op @ BinOp::Sub(_) => add_op(left, op, right, modulus, inttype),
-    BinOp::Mul(_) => mul_op(left, right, modulus, inttype),
-    BinOp::Div(_) => div_op(left, right, modulus, inttype),
-    _ => syn::Error::new(
-      op.span(),
-      format!("Unsupported bin op \"{}\"", quote! { #op }),
-    )
-    .to_compile_error(),
-  }
-}
-
 pub fn modulafy(expr: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   if let Expr::Lit(ExprLit { lit: Lit::Int(lit), .. }) = modulus {
     let m: u64 = lit.base10_parse().unwrap();
@@ -83,6 +46,7 @@ pub fn modulafy(expr: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   match expr {
     Expr::Lit(expr) => lit(expr, inttype),
     Expr::Path(_) => path(expr, modulus, inttype),
+    Expr::Unary(unary_op) => unary(unary_op, modulus, inttype),
     Expr::Binary(bin_op) => binary(bin_op, modulus, inttype),
     Expr::Paren(paren) => {
       let expr = modulafy(&paren.expr, modulus, inttype);

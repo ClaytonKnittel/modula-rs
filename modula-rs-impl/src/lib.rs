@@ -1,4 +1,6 @@
+mod binary;
 mod modulafy;
+mod unary;
 
 use modulafy::modulafy;
 use syn::{

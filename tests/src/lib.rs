@@ -89,4 +89,21 @@ mod tests {
       }
     }
   }
+
+  #[test]
+  fn test_neg() {
+    let x = 10;
+    let answer = modular!(-x, 7, i32);
+    assert_eq!(answer, 4);
+  }
+
+  #[test]
+  fn test_neg_many() {
+    for m in (1..=11).filter(|&m| (2..m).all(|d| m % d == 0)) {
+      for x in -m..=m {
+        let answer = modular!(-x, m, i32);
+        assert_eq!((x + answer).rem_euclid(m), 0);
+      }
+    }
+  }
 }
