@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
-use syn::{BinOp, Expr, ExprBinary, ExprLit, Lit, LitInt, Type, spanned::Spanned};
+use syn::{BinOp, Expr, ExprBinary, ExprLit, Lit, Type, spanned::Spanned};
 
-fn modulo(expr: TokenStream, modulus: &LitInt) -> TokenStream {
+fn modulo(expr: TokenStream, modulus: &Expr) -> TokenStream {
   quote! { #expr.rem_euclid(#modulus) }
 }
 
@@ -21,24 +21,24 @@ fn lit(lit: &ExprLit, inttype: &Type) -> TokenStream {
   }
 }
 
-fn path(expr: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+fn path(expr: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   let expr = quote! { #inttype::from(#expr) };
   modulo(expr.to_token_stream(), modulus)
 }
 
-fn add_op(left: &Expr, op: &BinOp, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+fn add_op(left: &Expr, op: &BinOp, right: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   let left = modulafy(left, modulus, inttype);
   let right = modulafy(right, modulus, inttype);
   modulo(quote! { (#left #op #right) }, modulus)
 }
 
-fn mul_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+fn mul_op(left: &Expr, right: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   let left = modulafy(left, modulus, inttype);
   let right = modulafy(right, modulus, inttype);
   modulo(quote! { (#left * #right) }, modulus)
 }
 
-fn div_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+fn div_op(left: &Expr, right: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   let left = modulafy(left, modulus, inttype);
   let right = modulafy(right, modulus, inttype);
   let rinv = modulo(
@@ -50,7 +50,7 @@ fn div_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenS
 
 fn binary(
   ExprBinary { left, op, right, .. }: &ExprBinary,
-  modulus: &LitInt,
+  modulus: &Expr,
   inttype: &Type,
 ) -> TokenStream {
   match op {
@@ -65,7 +65,7 @@ fn binary(
   }
 }
 
-pub fn modulafy(expr: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+pub fn modulafy(expr: &Expr, modulus: &Expr, inttype: &Type) -> TokenStream {
   match expr {
     Expr::Lit(expr) => lit(expr, inttype),
     Expr::Path(_) => path(expr, modulus, inttype),

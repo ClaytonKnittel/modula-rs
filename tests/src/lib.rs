@@ -20,20 +20,24 @@ mod tests {
 
   #[test]
   fn test_add_many() {
-    for x in -11..11 {
-      for y in -11..11 {
-        let answer = modular!(x + y, 11, i32);
-        assert_eq!(answer, (x + y + 22) % 11);
+    for m in (1..=11).filter(|&m| (2..m).all(|d| m % d == 0)) {
+      for x in -m..=m {
+        for y in -m..=m {
+          let answer = modular!(x + y, m, i32);
+          assert_eq!(answer, (x + y + 2 * m) % m);
+        }
       }
     }
   }
 
   #[test]
   fn test_sub_many() {
-    for x in -11..11 {
-      for y in -11..11 {
-        let answer = modular!(x - y, 11, i32);
-        assert_eq!(answer, (x - y + 22) % 11);
+    for m in (1..=11).filter(|&m| (2..m).all(|d| m % d == 0)) {
+      for x in -m..=m {
+        for y in -m..=m {
+          let answer = modular!(x - y, m, i32);
+          assert_eq!(answer, (x - y + 2 * m) % m);
+        }
       }
     }
   }
@@ -56,10 +60,12 @@ mod tests {
 
   #[test]
   fn test_mul_many() {
-    for x in -11i32..11 {
-      for y in -11i32..11 {
-        let answer = modular!(x * y, 7, i32);
-        assert_eq!(answer, (x * y).rem_euclid(7));
+    for m in (1..=11).filter(|&m| (2..m).all(|d| m % d == 0)) {
+      for x in -m..=m {
+        for y in -m..=m {
+          let answer = modular!(x * y, m, i32);
+          assert_eq!(answer, (x * y).rem_euclid(m));
+        }
       }
     }
   }
@@ -74,10 +80,12 @@ mod tests {
 
   #[test]
   fn test_div_many() {
-    for x in (-10i32..=10).filter(|&x| x != 0) {
-      for y in (-10i32..=10).filter(|&y| y != 0) {
-        let answer = modular!(x / y, 11, i32);
-        assert_eq!((y * answer).rem_euclid(11), x.rem_euclid(11));
+    for m in (1..=11).filter(|&m| (2..m).all(|d| m % d == 0)) {
+      for x in (-(m - 1)..m).filter(|&x| x != 0) {
+        for y in (-(m - 1)..m).filter(|&y| y != 0) {
+          let answer = modular!(x / y, m, i32);
+          assert_eq!((y * answer).rem_euclid(m), x.rem_euclid(m));
+        }
       }
     }
   }

@@ -2,14 +2,14 @@ mod modulafy;
 
 use modulafy::modulafy;
 use syn::{
-  Expr, LitInt, Token, Type,
+  Expr, Token, Type,
   parse::{Parse, ParseStream},
   parse_macro_input,
 };
 
 struct Input {
   expr: Expr,
-  modulus: LitInt,
+  modulus: Expr,
   inttype: Type,
 }
 
