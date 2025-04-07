@@ -32,6 +32,18 @@ fn add_op(left: &Expr, op: &BinOp, right: &Expr, modulus: &LitInt, inttype: &Typ
   modulo(quote! { (#left #op #right) }, modulus)
 }
 
+fn mul_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+  let left = modulafy(left, modulus, inttype);
+  let right = modulafy(right, modulus, inttype);
+  modulo(quote! { (#left * #right) }, modulus)
+}
+
+fn div_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
+  let left = modulafy(left, modulus, inttype);
+  let right = modulafy(right, modulus, inttype);
+  quote! { (#left * ((#right) as ::num_integer::Integer).extended_gcd().x) }
+}
+
 fn binary(
   ExprBinary { left, op, right, .. }: &ExprBinary,
   modulus: &LitInt,
@@ -39,6 +51,8 @@ fn binary(
 ) -> TokenStream {
   match op {
     op @ BinOp::Add(_) | op @ BinOp::Sub(_) => add_op(left, op, right, modulus, inttype),
+    BinOp::Mul(_) => mul_op(left, right, modulus, inttype),
+    BinOp::Div(_) => div_op(left, right, modulus, inttype),
     _ => syn::Error::new(
       op.span(),
       format!("Unsupported bin op \"{}\"", quote! { #op }),
