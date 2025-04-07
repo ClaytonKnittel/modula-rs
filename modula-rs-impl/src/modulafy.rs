@@ -41,7 +41,11 @@ fn mul_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenS
 fn div_op(left: &Expr, right: &Expr, modulus: &LitInt, inttype: &Type) -> TokenStream {
   let left = modulafy(left, modulus, inttype);
   let right = modulafy(right, modulus, inttype);
-  quote! { (#left * ((#right) as ::num_integer::Integer).extended_gcd().x) }
+  let rinv = modulo(
+    quote! { ::modula_rs::num_integer::Integer::extended_gcd(&#right, &#modulus).x },
+    modulus,
+  );
+  modulo(quote! { (#left * #rinv) }, modulus)
 }
 
 fn binary(

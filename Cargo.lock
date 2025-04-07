@@ -12,6 +12,14 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 name = "modula-rs"
 version = "0.1.0"
 dependencies = [
+ "modula-rs-impl",
+ "num-integer",
+]
+
+[[package]]
+name = "modula-rs-impl"
+version = "0.1.0"
+dependencies = [
  "num-integer",
  "proc-macro2",
  "quote",
